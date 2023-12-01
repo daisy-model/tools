@@ -1,0 +1,23 @@
+[project]
+name = "daisy_tools"
+version = "0.0.1"
+dependencies = [
+]
+[project.scripts]
+fix_hip_for_qgis = "daisy_tools.hip.fix_hip_for_qgis:main"
+
+[build-system]
+requires = [
+    "setuptools"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["daisy_tools.hip"]
+
+[tool.pylint.messages_control] 
+disable = [
+	'trailing-whitespace',
+    'trailing-newlines',
+    ]
+
