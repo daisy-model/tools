@@ -1,4 +1,4 @@
-# Tools for working with data from [https://hip.dataforsyningen.dk/pages/about.html](Hydrologisk Informations- og Prognosesystem).
+# Tools for working with data from [Hydrologisk Informations- og Prognosesystem](https://hip.dataforsyningen.dk/pages/about.html).
 
 We are primarily interested in two types of data from HIP. 
 
@@ -8,3 +8,7 @@ We are primarily interested in two types of data from HIP.
 ## Tools
 * `fix_hip_for_qgis.py` - [QGIS](https://qgis.org) expects NetCDF files to be formatted in a particular way, and NetCDF files from HIP are formatted in a different way. After running this tool it should be possible to import a time series from HIP into QGIS as a mesh.
   - **Note regarding CRS information** (2023-11-30). NetCDF files from HIP do not contain CRS information. It is possible to add CRS to the converted file, but QGIS cannot read the file as a mesh if CRS is present. If the file is read as a scalar, time is not interpreted correctly. The best option for now is to manually add CRS in QGIS if needed. It is not clear from the documentation which CRS to use, but the most likely candidate is [EPSG:25832](https://epsg.io/25832)
+
+* `extract_head_elevation.py` - Extract head elevation from a single cell
+
+* `extract_soil_column.py` - Extract soil column from a single cell
