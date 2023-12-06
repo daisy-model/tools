@@ -48,7 +48,7 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, base_unit=None
         unit : Unit of head_elevation
         head_elevation : Head elevation in grid cell
     '''
-    # pylint: disable=duplicate-code
+    # pylint: disable=duplicate-code, too-many-arguments
     if i is None:
         i = (ds['X'] == x).argmax()
     else:

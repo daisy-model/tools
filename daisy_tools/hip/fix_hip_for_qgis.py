@@ -29,7 +29,6 @@ it seems to be common to just use zone 32. So in summary, the CRS should be
 ETRS89 / UTM zone 32N (EPSG:25832) (https://epsg.io/25832)
 
 '''
-import argparse
 import numpy as np
 import xarray as xr
 import cftime
@@ -37,22 +36,6 @@ import cftime
 __all__ = [
     'fix_hip_for_qgis'
 ]
-
-def main():
-    # pylint: disable=missing-function-docstring
-    # TODO: Consider getting WKT from https://epsg.io/<EPSG-number>.wkt
-    parser = argparse.ArgumentParser('Extract head elevation')
-    parser.add_argument('inpath', type=str)
-    parser.add_argument('outpath', type=str)
-    parser.add_argument('--set-crs-epsg-25832', action='store_true',
-                        help='Write CRS info to the dataset. Beware that QGIS cannot read the file '
-                        'as a mesh if this is present.')
-    args = parser.parse_args()
-
-    # We need to not decode times, so we can easily calculate a new offset
-    with xr.open_dataset(args.inpath, decode_times=False) as ds:
-        fix_hip_for_qgis(ds, args.set_crs_epsg_25832).to_netcdf(args.outpath)
-    return 0
 
 def fix_hip_for_qgis(ds, set_crs_epsg_25832):
     '''Fix a dataset from HIP such that it can be read nicely into QGIS.
@@ -133,7 +116,3 @@ PROJCS["ETRS89 / UTM zone 32N",
     AXIS["Northing",NORTH],
     AUTHORITY["EPSG","25832"]]
 '''
-
-
-if __name__ == '__main__':
-    main()
