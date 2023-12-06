@@ -18,6 +18,26 @@ def xy_ij_params(args, ds):
         params['y'] = args.y
     return params
 
+def run_extract_head_elevation():
+    # pylint: disable=missing-function-docstring    
+    parser = argparse.ArgumentParser('Extract head elevation from HIP head elevation time series')
+    parser.add_argument('inpath', type=str)
+    parser.add_argument('--outpath', type=str, default=None)
+    parser.add_argument('--x', type=int, default=None)
+    parser.add_argument('--y', type=int, default=None)
+    parser.add_argument('--base-unit', type=str, default=None)
+    args = parser.parse_args()
+
+    with xr.open_dataset(args.inpath) as ds:
+        params = xy_ij_params(args, ds)
+        if args.base_unit is not None:
+            params['base_unit'] = cfunits.Units(args.base_unit)
+        head_elevation = extract_head_elevation(ds, **params)
+        if args.outpath is None:
+            print(head_elevation)
+        else:
+            head_elevation.to_csv(args.outpath)
+
 def run_extract_soil_column():
     # pylint: disable=missing-function-docstring    
     parser = argparse.ArgumentParser('Extract soil column from HIP elevation map')    
