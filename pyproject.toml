@@ -2,9 +2,16 @@
 name = "daisy_tools"
 version = "0.0.1"
 dependencies = [
+             "xarray",
+             "numpy",
+             "pandas",
+             "cfunits",
+             "cftime",
 ]
+
 [project.scripts]
 fix_hip_for_qgis = "daisy_tools.hip.fix_hip_for_qgis:main"
+extract_soil_column = "daisy_tools.hip.runners:run_extract_soil_column"
 
 [build-system]
 requires = [
