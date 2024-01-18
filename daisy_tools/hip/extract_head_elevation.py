@@ -1,6 +1,7 @@
 '''See extract_head_elevation'''
 import pandas as pd
 import cfunits
+import xarray as xr
 from .units import unit_map
 
 __all__ = [
@@ -9,7 +10,7 @@ __all__ = [
 
 HEAD_ELEVATION_LAYER = 'head elevation in saturated zone'
 
-def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, base_unit=None):
+def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, base_unit=None):
     '''Extract the head elevation at a single grid cell
 
     Parameters
@@ -33,6 +34,9 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, base_unit=None
       Value along Y dimension. One of `j` and `y` must be provided.
       Ignored if `j` is not None
 
+    layers : int or sequence of int
+      Extract these layers. If None extract all layers
+
     base_unit : cfunits.Units
       Convert head_elevation to `base_unit`.
       If None keep the original unit
@@ -43,7 +47,7 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, base_unit=None
       Dataframe with columns
         X : x coordinate of grid cell
         Y : y coordinate of grid cell
-        pressure_layer_name : Name of layer using HIP pressure naming style
+        layer : Name of layer using HIP pressure naming style
         time : Time coordinate of grid cell
         unit : Unit of head_elevation
         head_elevation : Head elevation in grid cell
@@ -57,20 +61,29 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, base_unit=None
         j = (ds['Y'] == y).argmax()
     else:
         y = int(ds['Y'][j])
-    head_elevation = ds.isel(Y=j, X=i).to_array()
+
+    if layers is None:
+        layers = ds['layer'] # extract all layers
+    elif isinstance(layers, int):
+        layers = [layers]
+    head_elevation = ds.isel(Y=j, X=i, layer=layers).to_array()
     unit = unit_map[ds[HEAD_ELEVATION_LAYER].units]
     if base_unit is not None and base_unit != unit:
-        cfunits.Units.conform(head_elevation, unit, base_unit)
+        head_elevation = xr.DataArray(
+            cfunits.Units.conform(
+                head_elevation, unit, base_unit),
+            coords=head_elevation.coords
+        )
     else:
         base_unit = unit
-    
+    # TODO: Change to an xarray
     return pd.concat([
         pd.DataFrame({
             'X' : x,
             'Y' : y,
-            'pressure_layer_name' : int(layer),
+            'layer' : int(layer),
             'time' : ds['time'],
             'head_elevation' : head_elevation.isel(layer=layer).values.squeeze(),
             'unit' : base_unit,
-        }) for layer in ds['layer']
+        }) for layer in layers
     ])
