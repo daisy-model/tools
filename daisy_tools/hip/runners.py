@@ -6,7 +6,7 @@ import cfunits
 from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .fix_hip_for_qgis import fix_hip_for_qgis
-from .util import find_topmost_aquifer
+from .prepare_hip_data_for_daisy import prepare_hip_data_for_daisy
 
 def xy_ij_params(args, ds):
     '''Handle xy/ix params for the runners'''
@@ -101,24 +101,11 @@ def run_prepare_hip_data_for_daisy():
         args.dk_model = int(os.path.basename(args.topography)[2])
         assert 1 <= args.dk_model <= 7
     dk_model = f'DK{args.dk_model}'
-    with xr.open_dataset(args.topography) as ds:
-        soil_column, terrain_height = extract_soil_column(ds, x=args.x, y=args.y,
-                                                          return_terrain_height=True,
-                                                          base_unit=unit)
-        top_aquifer = find_topmost_aquifer(dk_model, soil_column)
-        soil_column['dk_model'] = dk_model
-        soil_column['aquifer'] = soil_column['layer'] == top_aquifer['elevation']
-        soil_column['terrain_height'] = terrain_height
-        soil_column = soil_column[
-            ['dk_model', 'X', 'Y', 'terrain_height', 'layer', 'aquifer', 'elevation', 'thickness',
-             'unit']
-        ]
-    with xr.open_dataset(args.head_elevation) as ds:
-        head_elevation = extract_head_elevation(ds, x=args.x, y=args.y,
-                                                layers=top_aquifer['head_elevation'],
-                                                base_unit=unit)
-        head_elevation['pressure'] = terrain_height - head_elevation['head_elevation']
-        head_elevation = head_elevation[['time', 'pressure', 'unit']]
+    with xr.open_dataset(args.topography) as ds_topo, \
+         xr.open_dataset(args.head_elevation) as ds_head:
+        soil_column, terrain_height, top_aquifer, head_elevation = \
+            prepare_hip_data_for_daisy(dk_model, ds_topo, ds_head, args.x, args.y, unit)
+        
     if args.outdir is None:
         line = '============================= {0:^20s} ============================='
         print(line.format('Soil column'))
