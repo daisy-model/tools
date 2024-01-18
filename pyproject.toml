@@ -13,6 +13,7 @@ dependencies = [
 fix_hip_for_qgis = "daisy_tools.hip.runners:run_fix_hip_for_qgis"
 extract_soil_column = "daisy_tools.hip.runners:run_extract_soil_column"
 extract_head_elevation = "daisy_tools.hip.runners:run_extract_head_elevation"
+prepare_hip_data_for_daisy = "daisy_tools.hip.runners:run_prepare_hip_data_for_daisy"
 
 [build-system]
 requires = [

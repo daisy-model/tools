@@ -1,10 +1,12 @@
 '''Entry points for executables'''
 import argparse
+import os
 import xarray as xr
 import cfunits
 from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .fix_hip_for_qgis import fix_hip_for_qgis
+from .util import find_topmost_aquifer
 
 def xy_ij_params(args, ds):
     '''Handle xy/ix params for the runners'''
@@ -76,5 +78,60 @@ def run_extract_soil_column():
         else:
             soil_column.to_csv(args.outpath)
 
-            
-            
+
+def run_prepare_hip_data_for_daisy():
+    # pylint: disable=missing-function-docstring
+    parser = argparse.ArgumentParser('Prepare HIP data for Daisy')
+    parser.add_argument('topography', type=str, help='Path to topography file')
+    parser.add_argument('head_elevation', type=str, help='Path to head elevation file')
+    parser.add_argument('--x', type=int, required=True, help='x coordinate of cell to extract')
+    parser.add_argument('--y', type=int, required=True, help='y coordinate of cell to extract')
+    parser.add_argument('--dk-model', type=int, choices=(1,2,3,4,5,6,7), default=None,
+                        help='Which DK model the data is from. If None, try to guess from '
+                        'topography filename')
+    parser.add_argument('--outdir', type=str, default=None)
+    parser.add_argument('--unit', type=str, default='meter')
+    args = parser.parse_args()
+
+    if args.outdir is not None:
+        os.makedirs(args.outdir, exist_ok=True)
+
+    unit = cfunits.Units(args.unit)
+    if args.dk_model is None:
+        args.dk_model = int(os.path.basename(args.topography)[2])
+        assert 1 <= args.dk_model <= 7
+    dk_model = f'DK{args.dk_model}'
+    with xr.open_dataset(args.topography) as ds:
+        soil_column, terrain_height = extract_soil_column(ds, x=args.x, y=args.y,
+                                                          return_terrain_height=True,
+                                                          base_unit=unit)
+        top_aquifer = find_topmost_aquifer(dk_model, soil_column)
+        soil_column['dk_model'] = dk_model
+        soil_column['aquifer'] = soil_column['layer'] == top_aquifer['elevation']
+        soil_column['terrain_height'] = terrain_height
+        soil_column = soil_column[
+            ['dk_model', 'X', 'Y', 'terrain_height', 'layer', 'aquifer', 'elevation', 'thickness',
+             'unit']
+        ]
+    with xr.open_dataset(args.head_elevation) as ds:
+        head_elevation = extract_head_elevation(ds, x=args.x, y=args.y,
+                                                layers=top_aquifer['head_elevation'],
+                                                base_unit=unit)
+        head_elevation['pressure'] = terrain_height - head_elevation['head_elevation']
+        head_elevation = head_elevation[['time', 'pressure', 'unit']]
+    if args.outdir is None:
+        line = '============================= {0:^20s} ============================='
+        print(line.format('Soil column'))
+        print(soil_column, '\n')
+
+        print(line.format('Terrain height'))
+        print(terrain_height, soil_column['unit'][0], '\n')
+
+        print(line.format('Top aquifer'))
+        print(*[f'{k} layer name: {v}' for k,v in top_aquifer.items()], sep='\n', end='\n\n')
+
+        print(line.format('Head elevation'))
+        print(head_elevation, '\n')
+    else:
+        soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
+        head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
