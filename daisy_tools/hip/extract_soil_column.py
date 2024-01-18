@@ -9,8 +9,12 @@ __all__ = [
 ]
 
 
-def extract_soil_column(ds, *, i=None, j=None, x=None, y=None, missing_layer_thickness=0.5,
-                        base_unit=None):
+def extract_soil_column(ds, *,
+                        i=None, j=None,
+                        x=None, y=None,
+                        missing_layer_unit=cfunits.Units('0.5m'),
+                        base_unit=None,
+                        return_terrain_height=False):
     # pylint: disable=too-many-arguments
     '''Extract the soil column at a single grid cell
 
@@ -37,23 +41,29 @@ def extract_soil_column(ds, *, i=None, j=None, x=None, y=None, missing_layer_thi
       Value along Y dimension. One of `j` and `y` must be provided.
       Ignored if `j` is not None
 
-    missing_layer_thickness : float
-      Thickness of layers that should be ignored
+    missing_layer_unit : cfunits.Units
+      Thickness of layers that should be ignored expressed as a unit.
 
     base_unit : cfunits.Units
       Convert all all layers to `base_unit`.
       If None use the unit of the first layer as base unit.
-    
+
+    return_terrain_height : bool
+      If True also return terrain height
+
     Returns
     -------
+    soil_column or (soil_column, terrain_height)
     soil_column : pandas.DataFrame
       Dataframe with columns
         X : x coordinate of grid cell
         Y : y coordinate of grid cell    
-        elevation_layer_name : Name of layer using HIP elevation naming style
+        layer : Name of layer using HIP elevation naming style
         unit : Unit of elevation and thickness
         elevation : Elevation of grid cell
         thickness : Thickness of layer in grid cell
+
+    terrain_height : float
 
     See also
     --------
@@ -64,7 +74,7 @@ def extract_soil_column(ds, *, i=None, j=None, x=None, y=None, missing_layer_thi
     #       set to `EumUnit.eumUmeter`. This does not appear to be recognized by cfunits. So for now
     #       we define our own unit mapping. See `units.py`
     # TODO: Maybe return an xarray.Dataset instead?
-    # pylint: disable=duplicate-code
+    # pylint: disable=duplicate-code, too-many-locals
     if i is None:
         i = (ds['X'] == x).argmax()
     else:
@@ -93,14 +103,20 @@ def extract_soil_column(ds, *, i=None, j=None, x=None, y=None, missing_layer_thi
                 raise ValueError(f'{layer_names[0]} and {layer} does not have equivalent units'
                                  f'{base_unit}, {unit}')
             elevation[idx+1] = cfunits.Units.conform(elevation[idx+1], unit, base_unit)
+    missing_layer_thickness = cfunits.Units.conform(1, missing_layer_unit, base_unit)
     keep = elevation[:-1] - elevation[1:] != missing_layer_thickness
     layer_names = layer_names[np.pad(keep, (1,0), constant_values=0)]
     elevation = elevation[np.pad(keep, (1,0), constant_values=1)]
-    return pd.DataFrame({
+
+    # TODO: Change to an xarray
+    df = pd.DataFrame({
         'X' : x,
         'Y' : y,
-        'elevation_layer_name' : layer_names,
+        'layer' : layer_names,
         'unit' : base_unit,
         'elevation' : elevation[1:],
         'thickness' : elevation[:-1] - elevation[1:],
     })
+    if return_terrain_height:
+        return df, elevation[0]
+    return df
