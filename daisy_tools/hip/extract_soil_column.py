@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import cfunits
 from .units import unit_map
+from .util import get_idx_and_coord
 
 __all__ = [
     'extract_soil_column'
@@ -75,14 +76,7 @@ def extract_soil_column(ds, *,
     #       we define our own unit mapping. See `units.py`
     # TODO: Maybe return an xarray.Dataset instead?
     # pylint: disable=duplicate-code, too-many-locals
-    if i is None:
-        i = (ds['X'] == x).argmax()
-    else:
-        x = int(ds['X'][i])
-    if j is None:
-        j = (ds['Y'] == y).argmax()
-    else:
-        y = int(ds['Y'][j])
+    i, j, x, y = get_idx_and_coord(ds, i, j, x, y) # We need i,j for .isel() and x,y for .sel()
     layer_names = np.array(list(ds.data_vars.keys()))
     units = [unit_map[ds[layer].units] for layer in layer_names]
     elevation = ds.isel(time=0, Y=j, X=i).to_array().values
@@ -91,7 +85,7 @@ def extract_soil_column(ds, *,
         base_unit = units[0]
     elif base_unit != units[0]:
         elevation[0] = cfunits.Units.conform(elevation[0], units[0], base_unit)
-        
+
     # Check that all values are in the same unit. If not try to convert to the same unit
     for idx, (unit, layer) in enumerate(zip(units[1:], layer_names[1:])):
         if base_unit != unit:

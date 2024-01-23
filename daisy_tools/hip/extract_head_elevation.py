@@ -3,6 +3,7 @@ import pandas as pd
 import cfunits
 import xarray as xr
 from .units import unit_map
+from .util import get_idx_and_coord
 
 __all__ = [
     'extract_head_elevation'
@@ -53,15 +54,7 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, b
         head_elevation : Head elevation in grid cell
     '''
     # pylint: disable=duplicate-code, too-many-arguments
-    if i is None:
-        i = (ds['X'] == x).argmax()
-    else:
-        x = int(ds['X'][i])
-    if j is None:
-        j = (ds['Y'] == y).argmax()
-    else:
-        y = int(ds['Y'][j])
-
+    i, j, x, y = get_idx_and_coord(ds, i, j, x, y) # We need i,j for .isel() and x,y for .sel()
     if layers is None:
         layers = ds['layer'] # extract all layers
     elif isinstance(layers, int):
@@ -83,7 +76,7 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, b
             'Y' : y,
             'layer' : int(layer),
             'time' : ds['time'],
-            'head_elevation' : head_elevation.isel(layer=layer).values.squeeze(),
+            'head_elevation' : head_elevation.sel(layer=layer).values.squeeze(),
             'unit' : base_unit,
         }) for layer in layers
     ])
