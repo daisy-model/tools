@@ -91,7 +91,8 @@ def run_prepare_hip_data_for_daisy():
                         help='Which DK model the data is from. If None, try to guess from '
                         'topography filename')
     parser.add_argument('--outdir', type=str, default=None)
-    parser.add_argument('--unit', type=str, default='meter')
+    parser.add_argument('--unit', type=str, default='cm', help='Unit of measurements. Default is cm.')
+    parser.add_argument('--truncate', action='store_true', help='If set, truncate measurements to 0 decimals')
     args = parser.parse_args()
 
     if args.outdir is not None:
@@ -106,21 +107,22 @@ def run_prepare_hip_data_for_daisy():
          xr.open_dataset(args.head_elevation) as ds_head:
         soil_column, terrain_height, top_aquifer, head_elevation = \
             prepare_hip_data_for_daisy(dk_model, ds_topo, ds_head, args.x, args.y, unit)
+
+    if args.truncate is not None:
+        head_elevation['head_elevation'] = head_elevation['head_elevation'].round(0).astype(int)
+        cols = ['terrain_height', 'elevation', 'thickness']
+        soil_column[cols] = soil_column[cols].round(0).astype(int)
         
     if args.outdir is None:
         line = '============================= {0:^20s} ============================='
         print(line.format('Soil column'))
         print(soil_column, '\n')
 
-        print(line.format('Terrain height'))
-        print(terrain_height, soil_column['unit'][0], '\n')
-
         print(line.format('Top aquifer'))
         print(*[f'{k} layer name: {v}' for k,v in top_aquifer.items()], sep='\n', end='\n\n')
 
         print(line.format('Head elevation'))
         print(head_elevation, '\n')
-        print(ddf)
     else:
         soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
         head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
