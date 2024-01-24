@@ -3,16 +3,14 @@ import numpy as np
 import pandas as pd
 import cfunits
 from .units import unit_map
-from .util import get_idx_and_coord
+from .util import bounds_check
 
 __all__ = [
     'extract_soil_column'
 ]
 
 
-def extract_soil_column(ds, *,
-                        i=None, j=None,
-                        x=None, y=None,
+def extract_soil_column(ds, x, y,
                         missing_layer_unit=cfunits.Units('0.5m'),
                         base_unit=None,
                         return_terrain_height=False):
@@ -28,19 +26,11 @@ def extract_soil_column(ds, *,
       first layer being the topmost layer, e.g.
       list(ds.data_vars.keys()) == ['Topography', 'CompLayer_1', 'CompLayer_2', ..., 'CompLayer_N']
 
-    i : int
-      Index along X dimension. One of `i` and `x` must be provided.
+    x : float
+      Value along X dimension.
 
-    j : int
-      Index along Y dimension. One of `j` and `y` must be provided.
-
-    x : int
-      Value along X dimension. One of `i` and `x` must be provided.
-      Ignored if `i` is not None
-
-    y : int
-      Value along Y dimension. One of `j` and `y` must be provided.
-      Ignored if `j` is not None
+    y : float
+      Value along Y dimension.
 
     missing_layer_unit : cfunits.Units
       Thickness of layers that should be ignored expressed as a unit.
@@ -76,10 +66,10 @@ def extract_soil_column(ds, *,
     #       we define our own unit mapping. See `units.py`
     # TODO: Maybe return an xarray.Dataset instead?
     # pylint: disable=duplicate-code, too-many-locals
-    i, j, x, y = get_idx_and_coord(ds, i, j, x, y) # We need i,j for .isel() and x,y for .sel()
+    bounds_check(ds, x, y)
     layer_names = np.array(list(ds.data_vars.keys()))
     units = [unit_map[ds[layer].units] for layer in layer_names]
-    elevation = ds.isel(time=0, Y=j, X=i).to_array().values
+    elevation = ds.isel(time=0).interp(Y=y, X=x).to_array().values
     
     if base_unit is None:
         base_unit = units[0]

@@ -4,7 +4,8 @@ from .layer_names import hip_elevation_to_hip_pressure, hip_pressure_to_dkm2019,
 
 __all__ = [
     'find_topmost_aquifer',
-    'get_idx_and_coord'
+    'get_idx_and_coord',
+    'bounds_check',
 ]
 
 def find_topmost_aquifer(dk_model, soil_column):
@@ -46,6 +47,12 @@ def find_topmost_aquifer(dk_model, soil_column):
                      'aquifer' : dkm2019_to_aquifer[dk] }
     raise RuntimeError('No aquifer in soil column')
 
+
+def bounds_check(ds, x, y):
+    if x > ds['X'].max() or x < ds['X'].min():
+        raise ValueError(f'x={x} is outside the bounds {ds["X"].min():f}, {ds["X"].max():f}')
+    if y > ds['Y'].max() or y < ds['Y'].min():
+            raise ValueError(f'y={y} is outside the bounds {ds["Y"].min():f}, {ds["Y"].max():f}')
 
 def get_idx_and_coord(ds, i=None, j=None, x=None, y=None):
     '''Extract the head elevation at a single grid cell

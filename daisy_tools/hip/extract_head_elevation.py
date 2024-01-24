@@ -3,7 +3,7 @@ import pandas as pd
 import cfunits
 import xarray as xr
 from .units import unit_map
-from .util import get_idx_and_coord
+from .util import bounds_check
 
 __all__ = [
     'extract_head_elevation'
@@ -11,7 +11,7 @@ __all__ = [
 
 HEAD_ELEVATION_LAYER = 'head elevation in saturated zone'
 
-def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, base_unit=None):
+def extract_head_elevation(ds, x, y, layers=None, base_unit=None):
     '''Extract the head elevation at a single grid cell
 
     Parameters
@@ -21,19 +21,11 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, b
         <N>
       where <N> in [0,10]
 
-    i : int
-      Index along X dimension. One of `i` and `x` must be provided.
+    x : float
+      Value along X dimension.
 
-    j : int
-      Index along Y dimension. One of `j` and `y` must be provided.
-
-    x : int
-      Value along X dimension. One of `i` and `x` must be provided.
-      Ignored if `i` is not None
-
-    y : int
-      Value along Y dimension. One of `j` and `y` must be provided.
-      Ignored if `j` is not None
+    y : float
+      Value along Y dimension.
 
     layers : int or sequence of int
       Extract these layers. If None extract all layers
@@ -54,12 +46,12 @@ def extract_head_elevation(ds, *, i=None, j=None, x=None, y=None, layers=None, b
         head_elevation : Head elevation in grid cell
     '''
     # pylint: disable=duplicate-code, too-many-arguments
-    i, j, x, y = get_idx_and_coord(ds, i, j, x, y) # We need i,j for .isel() and x,y for .sel()
+    bounds_check(ds, x, y)
     if layers is None:
         layers = ds['layer'] # extract all layers
     elif isinstance(layers, int):
         layers = [layers]
-    head_elevation = ds.isel(Y=j, X=i, layer=layers).to_array()
+    head_elevation = ds.isel(layer=layers).interp(X=x, Y=y).to_array()
     unit = unit_map[ds[HEAD_ELEVATION_LAYER].units]
     if base_unit is not None and base_unit != unit:
         head_elevation = xr.DataArray(
