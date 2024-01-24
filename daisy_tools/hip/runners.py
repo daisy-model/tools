@@ -7,6 +7,7 @@ from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .fix_hip_for_qgis import fix_hip_for_qgis
 from .prepare_hip_data_for_daisy import prepare_hip_data_for_daisy
+from .ddf import DDF
 
 def xy_ij_params(args, ds):
     '''Handle xy/ix params for the runners'''
@@ -119,6 +120,8 @@ def run_prepare_hip_data_for_daisy():
 
         print(line.format('Head elevation'))
         print(head_elevation, '\n')
+        print(ddf)
     else:
         soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
         head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
+        DDF(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
