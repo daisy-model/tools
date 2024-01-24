@@ -56,6 +56,5 @@ def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit)
     head_elevation = extract_head_elevation(head_elevation, x=x, y=y,
                                             layers=top_aquifer['head_elevation'],
                                             base_unit=unit)
-    head_elevation['pressure'] = terrain_height - head_elevation['head_elevation']
-    head_elevation = head_elevation[['time', 'pressure', 'unit']]
+    head_elevation['head_elevation'] = head_elevation['head_elevation'] - terrain_height
     return soil_column, terrain_height, top_aquifer, head_elevation
