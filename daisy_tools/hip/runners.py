@@ -96,7 +96,7 @@ def run_prepare_hip_data_for_daisy():
             soil_column, terrain_height, top_aquifer, head_elevation = \
                 prepare_hip_data_for_daisy(dk_model, ds_topo, ds_head, args.x, args.y, unit)
 
-        if args.truncate is not None:
+        if args.truncate:
             head_elevation['head_elevation'] = head_elevation['head_elevation'].round(0).astype(int)
             cols = ['terrain_height', 'elevation', 'thickness']
             soil_column[cols] = soil_column[cols].round(0).astype(int)
