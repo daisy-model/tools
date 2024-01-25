@@ -2,26 +2,60 @@
 
 __all__ = [
     'hip_elevation_to_hip_pressure',
+    'hip_elevation_to_dkm2019',
     'hip_pressure_to_dkm2019',
     'dkm2019_to_aquifer',
+    'dkm2019_aquitard',
 ]
 
 dkm2019_to_aquifer = {
-        'ks1' : 'glw1',
-        'ks2' : 'glw2',
-        'ks3' : 'glw3',
-        'ks4' : 'glw4',
-        'kalk' : 'glw6',
-        'kl1/kl2 + ks1/ks2' : 'glw1',
-        'ks5 - ps1' : 'glw4',
-        'ps2 - ps6' : 'glw5',
-        'blag1' : 'glw1',
-        'blag2' : 'glw2',
-        'blag3' : 'glw3',
-        'blag4' : 'glw4',
-        'blag5' : 'glw5',
-        'blag6' : 'glw6',
-    }        
+    'ks1' : 'glw1',
+    'ks2' : 'glw2',
+    'ks3' : 'glw3',
+    'ks4' : 'glw4',
+    'kalk' : 'glw6',
+    'kl1/kl2 + ks1/ks2' : 'glw1',
+    'ks5 - ps1' : 'glw4',
+    'ps2 - ps6' : 'glw5',
+    'blag1' : 'glw1',
+    'blag2' : 'glw2',
+    'blag3' : 'glw3',
+    'blag4' : 'glw4',
+    'blag5' : 'glw5',
+    'blag6' : 'glw6',
+}
+
+dkm2019_aquitard = {
+    'kl1',
+    'kl2',
+    'kl3',
+    'kl4',
+    'kl5',
+}
+
+
+def hip_elevation_to_dkm2019(model):
+    '''Convert layer names from HIP elevation to DKM2019 layer names
+
+    Valid keys in the returned dict are of the form CompLayer_<N> with <N> depending on the model:
+        1-11 for DK1, DK2, DK4, DK5, DK6
+        1-9 for DK3
+        1-7 for DK7
+
+    Parameters
+    ----------
+    model : str
+      Name of DK-model HIP. Valid model names are {
+        'DK1', 'DK2', 'DK3', 'DK4', 'DK5', 'DK6', 'DK7'
+      }
+    
+    Returns
+    -------
+    layer_map : dict of int, str
+      Mapping from elevation names to DK-model2019 names
+    '''
+    p2dk = hip_pressure_to_dkm2019(model)
+    return { k : p2dk[v] for k,v in hip_elevation_to_hip_pressure(model).items() }
 
 def hip_elevation_to_hip_pressure(model):
     '''Convert layer names from HIP elevation to layer numbers in HIP pressure
