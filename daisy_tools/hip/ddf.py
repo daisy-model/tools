@@ -1,11 +1,17 @@
-'''DDF file'''
+'''DDF representations of HIP data'''
 __all__ = [
-    'DDF',
-    #'save_head_elevation_as_ddf'
+    'DDFPressure',
 ]
 
-class DDF():
-    def __init__(self, head_elevation):
+class DDFPressure():
+    '''Represent head elevation as a DDF string
+
+    Parameters
+    ----------
+    head_elevation : pandas.DataFrame
+      Extracted head elevation
+    '''
+    def __init__(self, head_elevation):        
         self.ddf = [
             ['ddf-0.0 --- pressure table with header'],
             ['---'],
@@ -25,6 +31,10 @@ class DDF():
         return '\n'.join(['\t'.join(map(str, row)) for row in self.ddf])
 
     def save(self, outpath):
-        with open(outpath, 'w') as out:
+        '''Save the DDF string representation to a file
+
+        outpath : str          
+        '''
+        with open(outpath, 'w', encoding='utf8') as out:
             print(str(self), file=out)
         
