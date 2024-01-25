@@ -1,6 +1,7 @@
 '''Utility functions for HIP data extraction and transformation'''
 import warnings
-from .layer_names import hip_elevation_to_hip_pressure, hip_pressure_to_dkm2019, dkm2019_to_aquifer
+from .layer_names import hip_elevation_to_hip_pressure, hip_pressure_to_dkm2019, \
+    dkm2019_to_aquifer, dkm2019_aquitard
 
 __all__ = [
     'find_topmost_aquifer',
@@ -48,11 +49,66 @@ def find_topmost_aquifer(dk_model, soil_column):
     raise RuntimeError('No aquifer in soil column')
 
 
+
+def find_topmost_aquitard(dk_model, soil_column):
+    '''Find the topmost aquitard layer in a soil column
+
+    Parameters
+    ----------
+    model : str
+      Name of DK-model HIP. Valid model names are {
+        'DK1', 'DK2', 'DK3', 'DK4', 'DK5', 'DK6', 'DK7'
+      }
+
+    soil_column: pandas.DataFrame
+      Soil column as extracted by `daisy_tools.hip.extract_soil_column`.
+      The only required column is 'layer'. It is assumed that soil_column['layer'] contains the
+      layers ordered from top to bottom.
+
+    Returns
+    -------
+    aquitard_layer_name : dict
+      A dict with the name of the topmost aquitard layer using different naming conventions.
+      Contains the following keys
+      {
+        'elevation', # HIP elevation name style, e.g. 'CompLayer_11'
+        'head_elevation', # HIP pressure name style, e.g. 0
+        'dk2019', # DKM2019 name style, e.g. 'kalk'
+      }
+    '''
+    he_to_hp = hip_elevation_to_hip_pressure(dk_model)
+    hp_to_dk = hip_pressure_to_dkm2019(dk_model)
+    for he in soil_column['layer']:
+        hp = he_to_hp[he]
+        dk = hp_to_dk[hp]
+        if dk in dkm2019_aquitard:
+            return { 'elevation' : he,
+                     'head_elevation' : hp,
+                     'dk2019' : dk,
+                    }
+    raise RuntimeError('No aquitard in soil column')
+
+
 def bounds_check(ds, x, y):
+    '''Check that x and y are inside ds['X'] and ds['Y']
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+      Must contain the coordinates 'X' and 'Y'
+
+    x,y : float
+      Coordinates to bounds check
+
+    Raises
+    ------
+    IndexError
+      If x or y is not inside the bounds
+    '''    
     if x > ds['X'].max() or x < ds['X'].min():
-        raise ValueError(f'x={x} is outside the bounds {ds["X"].min():f}, {ds["X"].max():f}')
+        raise IndexError(f'x={x} is outside the bounds {ds["X"].min():f}, {ds["X"].max():f}')
     if y > ds['Y'].max() or y < ds['Y'].min():
-            raise ValueError(f'y={y} is outside the bounds {ds["Y"].min():f}, {ds["Y"].max():f}')
+        raise IndexError(f'y={y} is outside the bounds {ds["Y"].min():f}, {ds["Y"].max():f}')
 
 def get_idx_and_coord(ds, i=None, j=None, x=None, y=None):
     '''Extract the head elevation at a single grid cell
@@ -82,7 +138,6 @@ def get_idx_and_coord(ds, i=None, j=None, x=None, y=None):
     -------
     i,j,x,y
     '''
-    # TODO: Implement interpolation.
     if i is None and x is None:
         raise ValueError('One of i and x must be set')
     if j is None and y is None:
