@@ -113,6 +113,10 @@ def run_prepare_hip_data_for_daisy():
             soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
             head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
             DDFPressure(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
+            top_aquitard = soil_column.loc[soil_column['top_aquitard']]
+            top_aquitard[
+                ['dk_layer', 'elevation', 'thickness', 'unit', 'conductive_properties']
+            ].to_csv(os.path.join(args.outdir, 'top_aquitard.csv'), index=False)
     except Exception as e:
         print(e)
         return 1
