@@ -7,7 +7,7 @@ from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .fix_hip_for_qgis import fix_hip_for_qgis
 from .prepare_hip_data_for_daisy import prepare_hip_data_for_daisy
-from .ddf import DDF
+from .ddf import DDFPressure
 
 def run_fix_hip_for_qgis():
     # pylint: disable=missing-function-docstring
@@ -78,8 +78,10 @@ def run_prepare_hip_data_for_daisy():
                         help='Which DK model the data is from. If None, try to guess from '
                         'topography filename')
     parser.add_argument('--outdir', type=str, default=None)
-    parser.add_argument('--unit', type=str, default='cm', help='Unit of measurements. Default is cm.')
-    parser.add_argument('--truncate', action='store_true', help='If set, truncate measurements to 0 decimals')
+    parser.add_argument('--unit', type=str, default='cm',
+                        help='Unit of measurements. Default is cm.')
+    parser.add_argument('--truncate', action='store_true',
+                        help='If set, truncate measurements to 0 decimals')
     args = parser.parse_args()
 
     try:
@@ -93,7 +95,7 @@ def run_prepare_hip_data_for_daisy():
         dk_model = f'DK{args.dk_model}'
         with xr.open_dataset(args.topography) as ds_topo, \
              xr.open_dataset(args.head_elevation) as ds_head:
-            soil_column, terrain_height, top_aquifer, head_elevation = \
+            soil_column, head_elevation = \
                 prepare_hip_data_for_daisy(dk_model, ds_topo, ds_head, args.x, args.y, unit)
 
         if args.truncate:
@@ -105,14 +107,12 @@ def run_prepare_hip_data_for_daisy():
             line = '============================= {0:^20s} ============================='
             print(line.format('Soil column'))
             print(soil_column, '\n')
-            print(line.format('Top aquifer'))
-            print(*[f'{k} layer name: {v}' for k,v in top_aquifer.items()], sep='\n', end='\n\n')
             print(line.format('Head elevation'))
             print(head_elevation, '\n')
         else:
             soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
             head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
-            DDF(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
+            DDFPressure(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
     except Exception as e:
         print(e)
         return 1
