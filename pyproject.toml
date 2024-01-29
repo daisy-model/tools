@@ -3,7 +3,9 @@ name = "daisy_tools"
 version = "0.0.1"
 dependencies = [
              "xarray",
+             "netcdf4",
              "numpy",
+             "scipy",
              "pandas",
              "cfunits",
              "cftime",
@@ -26,7 +28,7 @@ packages = ["daisy_tools.hip"]
 
 [tool.pylint.messages_control] 
 disable = [
-	'trailing-whitespace',
+    'trailing-whitespace',
     'trailing-newlines',
-    ]
+]
 
