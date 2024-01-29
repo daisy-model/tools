@@ -5,7 +5,5 @@
 
 ## Installation
 
-    git clone git@github.com:daisy-model/tools.git
-    cd tools
-    pip install .
+    pip install git+https://github.com/daisy-model/tools.git@hip
     
