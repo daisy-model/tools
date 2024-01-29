@@ -5,6 +5,10 @@ from .extract_soil_column import extract_soil_column
 from .conductive_properties import get_conductive_properties
 from .layer_names import hip_elevation_to_dkm2019, hip_pressure_to_dkm2019
 
+__all__ = [
+    'prepare_hip_data_for_daisy'
+]
+
 def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit):
     # pylint: disable=too-many-arguments
     '''

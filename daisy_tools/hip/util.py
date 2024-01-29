@@ -5,6 +5,7 @@ from .layer_names import hip_elevation_to_hip_pressure, hip_pressure_to_dkm2019,
 
 __all__ = [
     'find_topmost_aquifer',
+    'find_topmost_aquitard',
     'get_idx_and_coord',
     'bounds_check',
 ]
