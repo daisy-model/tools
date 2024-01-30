@@ -69,7 +69,7 @@ These instructions assume you have a working python installation with pip.
 2. Start the Miniconda/Anaconda Powershell prompt.
 3. Download the conda environment file [`environment.yml`](https://github.com/daisy-model/tools/blob/hip/environment.yml) and create a new environment from it using the following commands. This will install all dependencies.
 
-        curl.exe -o daisy-tools-environment.yml https://github.com/daisy-model/tools/blob/hip/environment.yml
+        curl.exe -o daisy-tools-environment.yml https://raw.githubusercontent.com/daisy-model/tools/hip/environment.yml
         conda env create -f daisy-tools-environment.yml
         rm daisy-tools-environment.yml
         conda activate daisy-tools
@@ -81,7 +81,7 @@ These instructions assume you have a working python installation with pip.
 
 5. Download and install daisy tools
 
-        curl.exe -LJO https://github.com/daisy-model/tools/releases/latest/download/daisy_tools.tar.gz
+        curl.exe -o daisy_tools.tar.gz -L https://github.com/daisy-model/tools/releases/latest/download/daisy_tools.tar.gz
         pip install daisy_tools.tar.gz
 
 </details>
