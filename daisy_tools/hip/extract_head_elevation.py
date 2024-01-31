@@ -11,13 +11,13 @@ __all__ = [
 
 HEAD_ELEVATION_LAYER = 'head elevation in saturated zone'
 
-def extract_head_elevation(ds, x, y, layers=None, base_unit=None):
+def extract_head_elevation(gw_potential, x, y, layers=None, base_unit=None):
     '''Extract the head elevation at a single grid cell
 
     Parameters
     ----------
-    ds : xarray.Dataset
-      A HIP head elevation time series. Should contain the following layers
+    gw_potential : xarray.Dataset
+      A HIP ground water potential time series. Should contain the following layers
         <N>
       where <N> in [0,10]
 
@@ -46,13 +46,13 @@ def extract_head_elevation(ds, x, y, layers=None, base_unit=None):
         head_elevation : Head elevation in grid cell
     '''
     # pylint: disable=duplicate-code, too-many-arguments
-    bounds_check(ds, x, y)
+    bounds_check(gw_potential, x, y)
     if layers is None:
-        layers = ds['layer'] # extract all layers
+        layers = gw_potential['layer'] # extract all layers
     elif isinstance(layers, int):
         layers = [layers]
-    head_elevation = ds.isel(layer=layers).interp(X=x, Y=y).to_array()
-    unit = unit_map[ds[HEAD_ELEVATION_LAYER].units]
+    head_elevation = gw_potential.isel(layer=layers).interp(X=x, Y=y).to_array()
+    unit = unit_map[gw_potential[HEAD_ELEVATION_LAYER].units]
     if base_unit is not None and base_unit != unit:
         head_elevation = xr.DataArray(
             cfunits.Units.conform(
@@ -67,7 +67,7 @@ def extract_head_elevation(ds, x, y, layers=None, base_unit=None):
             'X' : x,
             'Y' : y,
             'layer' : int(layer),
-            'time' : ds['time'],
+            'time' : gw_potential['time'],
             'head_elevation' : head_elevation.sel(layer=layer).values.squeeze(),
             'unit' : base_unit,
         }) for layer in layers

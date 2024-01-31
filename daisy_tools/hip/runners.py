@@ -12,7 +12,7 @@ from .ddf import DDFPressure
 def run_fix_hip_for_qgis():
     # pylint: disable=missing-function-docstring
     # TODO: Consider getting WKT from https://epsg.io/<EPSG-number>.wkt
-    parser = argparse.ArgumentParser('Extract head elevation')
+    parser = argparse.ArgumentParser('Fix HIP file so it can be read into QGIS')
     parser.add_argument('inpath', type=str)
     parser.add_argument('outpath', type=str)
     parser.add_argument('--set-crs-epsg-25832', action='store_true',
@@ -48,7 +48,7 @@ def run_extract_head_elevation():
 
 def run_extract_soil_column():
     # pylint: disable=missing-function-docstring    
-    parser = argparse.ArgumentParser('Extract soil column from HIP elevation map')    
+    parser = argparse.ArgumentParser('Extract soil column from HIP hydrostratigraphic model')
     parser.add_argument('inpath', type=str)
     parser.add_argument('--outpath', type=str, default=None)
     parser.add_argument('--x', type=float, default=None)
@@ -70,13 +70,13 @@ def run_extract_soil_column():
 def run_prepare_hip_data_for_daisy():
     # pylint: disable=missing-function-docstring
     parser = argparse.ArgumentParser('Prepare HIP data for Daisy')
-    parser.add_argument('topography', type=str, help='Path to topography file')
-    parser.add_argument('head_elevation', type=str, help='Path to head elevation file')
+    parser.add_argument('hs_model', type=str, help='Path to hydrostratigraphic model file')
+    parser.add_argument('gw_potential', type=str, help='Path to ground water potential file')
     parser.add_argument('--x', type=float, required=True, help='x coordinate to extract')
     parser.add_argument('--y', type=float, required=True, help='y coordinate to extract')
     parser.add_argument('--dk-model', type=int, choices=(1,2,3,4,5,6,7), default=None,
                         help='Which DK model the data is from. If None, try to guess from '
-                        'topography filename')
+                        'hs_model filename')
     parser.add_argument('--outdir', type=str, default=None)
     parser.add_argument('--unit', type=str, default='cm',
                         help='Unit of measurements. Default is cm.')
@@ -90,13 +90,13 @@ def run_prepare_hip_data_for_daisy():
 
         unit = cfunits.Units(args.unit)
         if args.dk_model is None:
-            args.dk_model = int(os.path.basename(args.topography)[2])
+            args.dk_model = int(os.path.basename(args.hs_model)[2])
             assert 1 <= args.dk_model <= 7
         dk_model = f'DK{args.dk_model}'
-        with xr.open_dataset(args.topography) as ds_topo, \
-             xr.open_dataset(args.head_elevation) as ds_head:
+        with xr.open_dataset(args.hs_model) as hs_model, \
+             xr.open_dataset(args.gw_potential) as gw_potential:
             soil_column, head_elevation = \
-                prepare_hip_data_for_daisy(dk_model, ds_topo, ds_head, args.x, args.y, unit)
+                prepare_hip_data_for_daisy(dk_model, hs_model, gw_potential, args.x, args.y, unit)
 
         if args.truncate:
             head_elevation['head_elevation'] = head_elevation['head_elevation'].round(0).astype(int)

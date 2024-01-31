@@ -9,7 +9,7 @@ __all__ = [
     'prepare_hip_data_for_daisy'
 ]
 
-def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit):
+def prepare_hip_data_for_daisy(dk_model, hs_model, gw_potential, x, y, unit):
     # pylint: disable=too-many-arguments
     '''
     Parameters
@@ -19,13 +19,14 @@ def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit)
         'DK1', 'DK2', 'DK3', 'DK4', 'DK5', 'DK6', 'DK7'
       }
 
-    topography : xarray.Dataset
-      A HIP elevation map. It is assumed that layers are stored in order of elevation, with the
-      first layer being the topmost layer, e.g.
-      list(ds.data_vars.keys()) == ['Topography', 'CompLayer_1', 'CompLayer_2', ..., 'CompLayer_N']
+    hs_model : xarray.Dataset
+      A HIP hydrostratigraphic model. It is assumed that layers are stored in order of elevation,
+      with the first layer being the topmost layer, e.g.
+      list(hs_model.data_vars.keys()) == \
+          ['Topography', 'CompLayer_1', 'CompLayer_2', ..., 'CompLayer_N']
 
-    head_elevation : xarray.Dataset
-      A HIP head elevation time series. Should contain the following layers
+    gw_potential : xarray.Dataset
+      A HIP ground water potential time series. Should contain the following layers
         <N>
       where <N> in [0,10]
 
@@ -45,7 +46,7 @@ def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit)
     --------
     extract_head_elevation, extract_soil_column, layer_names, util
     '''
-    soil_column, terrain_height = extract_soil_column(topography, x=x, y=y,
+    soil_column, terrain_height = extract_soil_column(hs_model, x=x, y=y,
                                                       return_terrain_height=True,
                                                       base_unit=unit)
     top_aquifer = find_topmost_aquifer(dk_model, soil_column)
@@ -62,7 +63,7 @@ def prepare_hip_data_for_daisy(dk_model, topography, head_elevation, x, y, unit)
     soil_column['conductive_properties'] = soil_column['dk_layer'].apply(
         lambda layer: get_conductive_properties(dk_model, layer)
     )
-    head_elevation = extract_head_elevation(head_elevation, x=x, y=y,
+    head_elevation = extract_head_elevation(gw_potential, x=x, y=y,
                                             layers=top_aquifer['head_elevation'],
                                             base_unit=unit)
     head_elevation['dk_layer'] = head_elevation['layer'].replace(hip_pressure_to_dkm2019(dk_model))

@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-def extract_soil_column(ds, x, y,
+def extract_soil_column(hs_model, x, y,
                         missing_layer_unit=cfunits.Units('0.5m'),
                         base_unit=None,
                         return_terrain_height=False):
@@ -21,10 +21,11 @@ def extract_soil_column(ds, x, y,
 
     Parameters
     ----------
-    ds : xarray.Dataset
-      A HIP elevation map. It is assumed that layers are stored in order of elevation, with the
-      first layer being the topmost layer, e.g.
-      list(ds.data_vars.keys()) == ['Topography', 'CompLayer_1', 'CompLayer_2', ..., 'CompLayer_N']
+    hs_model : xarray.Dataset
+      A HIP hydrostratigraphic model. It is assumed that layers are stored in order of elevation,
+      with the first layer being the topmost layer, e.g.
+      list(hs_model.data_vars.keys()) == \
+          ['Topography', 'CompLayer_1', 'CompLayer_2', ..., 'CompLayer_N']
 
     x : float
       Value along X dimension.
@@ -66,10 +67,10 @@ def extract_soil_column(ds, x, y,
     #       we define our own unit mapping. See `units.py`
     # TODO: Maybe return an xarray.Dataset instead?
     # pylint: disable=duplicate-code, too-many-locals
-    bounds_check(ds, x, y)
-    layer_names = np.array(list(ds.data_vars.keys()))
-    units = [unit_map[ds[layer].units] for layer in layer_names]
-    elevation = ds.isel(time=0).interp(Y=y, X=x).to_array().values
+    bounds_check(hs_model, x, y)
+    layer_names = np.array(list(hs_model.data_vars.keys()))
+    units = [unit_map[hs_model[layer].units] for layer in layer_names]
+    elevation = hs_model.isel(time=0).interp(Y=y, X=x).to_array().values
     
     if base_unit is None:
         base_unit = units[0]
