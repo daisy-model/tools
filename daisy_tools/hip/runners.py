@@ -117,7 +117,7 @@ def run_prepare_hip_data_for_daisy():
             top_aquitard[
                 ['dk_layer', 'elevation', 'thickness', 'unit', 'conductive_properties']
             ].to_csv(os.path.join(args.outdir, 'top_aquitard.csv'), index=False)
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(e)
         return 1
     return 0
