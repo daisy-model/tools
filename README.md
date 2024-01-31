@@ -76,13 +76,14 @@ These instructions assume you have a working python installation with pip.
 
 4. Set the path to `udunits2.xml` and reactivate the environment
 
-        conda env config vars set UDUNITS2_XML_PATH="$env:CONDA_PREFIX\Library\share\udunits\uduints2.xsml"
+        conda env config vars set UDUNITS2_XML_PATH="$env:CONDA_PREFIX\Library\share\udunits\udunits2.xml"
         conda activate daisy-tools
 
 5. Download and install daisy tools
 
         curl.exe -o daisy_tools.tar.gz -L https://github.com/daisy-model/tools/releases/latest/download/daisy_tools.tar.gz
         pip install daisy_tools.tar.gz
+        rm daisy_tools.tar.gz
 
 </details>
 

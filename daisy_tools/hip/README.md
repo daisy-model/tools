@@ -26,7 +26,7 @@ Extract Daisy relevant data from a single cell
 
 3. Verify that you have installed daisy tools
 
-        prepare_hip_data_for_daisy.exe --help
+        prepare_hip_data_for_daisy --help
 
 4. Test that it works by extracting data from a point
 
@@ -37,7 +37,8 @@ Extract Daisy relevant data from a single cell
 
     Then we can extract data for the coordinate `X = 547070, Y = 6307670` with the following command
 
-        prepare_hip_data_for_daisy.exe Daisy\HIP\data\DK6_2020_100m_layers.nc Daisy\HIP\data\dk6_2020_100m_head_10km_630_54.nc --x 547070 --y 6307670 --outdir Daisy\HIP\out\x547070_y6307670 --unit cm --truncate
+        prepare_hip_data_for_daisy Daisy\HIP\data\DK6_2020_100m_layers.nc Daisy\HIP\data\dk6_2020_100m_head_10km_630_54.nc --x 547070 --y 6307670 --outdir Daisy\HIP\out\x547070_y6307670 --unit cm --truncate
+
     This will create four files in the folder `Daisy\HIP\out\x547070_y6307670`
 </details>
 </details>
