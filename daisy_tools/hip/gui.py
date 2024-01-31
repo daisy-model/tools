@@ -43,16 +43,16 @@ class UI(ttk.Frame):
     def _setup_path_entries(self, row_offset):
         self.path_entries = {
             k : ( ttk.Entry(self, width=80), tk.StringVar() ) for k in
-            [ 'hs_model', 'gw_potential', 'outdir']
+            [ 'hs_model_path', 'gw_potential_path', 'outdir']
         }
         for i, (entry, value) in enumerate(self.path_entries.values()):
             entry.grid(column=1, row=row_offset + i, sticky=tk.W)
             value.set("")
             entry["textvariable"] = value
         self.buttons.append(ttk.Button(self, text="Select hydrostratigraphic model",
-                                       command=self._set_hs_model))
+                                       command=self._set_hs_model_path))
         self.buttons.append(ttk.Button(self, text="Select groundwater potential",
-                                       command=self._set_gw_potential))
+                                       command=self._set_gw_potential_path))
         self.buttons.append(ttk.Button(self, text="Select out directory", command=self._set_outdir))
         return row_offset + len(self.path_entries)
         
@@ -108,11 +108,11 @@ class UI(ttk.Frame):
         status_area["textvariable"] = self.status_area_text
         return row_offset + rowspan
             
-    def _set_hs_model(self):
-        self.path_entries['hs_model'][1].set(askopenfilename())
+    def _set_hs_model_path(self):
+        self.path_entries['hs_model_path'][1].set(askopenfilename())
 
-    def _set_gw_potential(self):
-        self.path_entries['gw_potential'][1].set(askopenfilename())
+    def _set_gw_potential_path(self):
+        self.path_entries['gw_potential_path'][1].set(askopenfilename())
 
     def _set_outdir(self):
         self.path_entries['outdir'][1].set(askdirectory(mustexist=False))
@@ -132,9 +132,9 @@ class UI(ttk.Frame):
     def check_paths(self, paths):
         '''Sanity check paths'''
         errors = []
-        if not os.path.exists(paths['hs_model']):
+        if not os.path.exists(paths['hs_model_path']):
             errors.append('Missing hydrostratigraphic model path')
-        if not os.path.exists(paths['gw_potential']):
+        if not os.path.exists(paths['gw_potential_path']):
             errors.append('Missing groundwater potential path')
         if os.path.exists(paths['outdir']) and not os.path.isdir(paths['outdir']):
             errors.append('Output directory exists and is not a directory')
@@ -156,9 +156,6 @@ class UI(ttk.Frame):
     def run(self):
         '''Get parameters from UI, check them and pass to run_prepare_hip_fata_for_daisy'''
         self.status_message('Running')
-
-        print(self.get_extra_params())
-
         try:
             paths = self.get_paths()
             path_errors = self.check_paths(paths)
@@ -170,9 +167,12 @@ class UI(ttk.Frame):
             if len(coords_errors) > 0:
                 raise RuntimeError('\n'.join(coords_errors))
 
+            extra_params = self.get_extra_params()
+
             saved_paths = run_prepare_hip_data_for_daisy(
                 **paths,
                 **coords,
+                **extra_params,
             )
             
             self.status_message('\n'.join(['Success'] + [
@@ -217,7 +217,7 @@ def run_prepare_hip_data_for_daisy(hs_model_path, gw_potential_path, x, y, outdi
         os.makedirs(outdir, exist_ok=True)
 
     unit = cfunits.Units(unit)
-    if dk_model is None:
+    if dk_model == 'auto':
         dk_model = int(os.path.basename(hs_model_path)[2])
     dk_model = f'DK{dk_model}'
     with xr.open_dataset(hs_model_path) as hs_model, \
