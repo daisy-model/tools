@@ -1,0 +1,35 @@
+[project]
+name = "daisy_tools"
+version = "0.1.1"
+dependencies = [
+             "xarray",
+             "netcdf4",
+             "numpy",
+             "scipy",
+             "pandas",
+             "cfunits",
+             "cftime",
+]
+
+[project.scripts]
+fix_hip_for_qgis = "daisy_tools.hip.runners:run_fix_hip_for_qgis"
+extract_soil_column = "daisy_tools.hip.runners:run_extract_soil_column"
+extract_head_elevation = "daisy_tools.hip.runners:run_extract_head_elevation"
+prepare_hip_data_for_daisy = "daisy_tools.hip.runners:run_prepare_hip_data_for_daisy"
+prepare_hip_data_for_daisy_gui = "daisy_tools.hip.gui:main"
+
+[build-system]
+requires = [
+    "setuptools"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["daisy_tools.hip"]
+
+[tool.pylint.messages_control] 
+disable = [
+    'trailing-whitespace',
+    'trailing-newlines',
+]
+
