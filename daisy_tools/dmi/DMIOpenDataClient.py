@@ -4,10 +4,13 @@ import numpy as np
 import pandas as pd
 from pyproj import Proj
 from math import trunc
-from util import construct_datetime_argument, distance
+from .util import construct_datetime_argument, distance
 
+__all__ = [
+    'DMIOpenDataClient',
+]
 
-class DMIOpenDataClient:
+class DMIOpenDataClient():
     BASE_URL = "https://dmigw.govcloud.dk/{version}/{api}"
     SUPPORTED_APIS = {"climateData", "metObs"}
     SUPPORTED_VERSIONS = {"v2"}
@@ -173,11 +176,11 @@ class DMIOpenDataClient:
         return p, m
     
     def grid_name(self, latitude, longitude, size="10km"):
-        # DMI uses "Det Dansk Kvadratnet" which used ETRS89 / EPSG25832.
+        # DMI uses "Det Dansk Kvadratnet" which uses ETRS89 / EPSG25832.
         ETRS89 = Proj('epsg:25832')
         east, north = ETRS89(latitude=latitude, longitude=longitude)
 
-        # Grid resolution. DMI support 10 km and 20 km.
+        # Grid resolution. DMI supports 10 km and 20 km.
         res = {"10km": 10000, "20km": 20000}
         mul = {"10km": 1, "20km": 2}
         r = res[size]
