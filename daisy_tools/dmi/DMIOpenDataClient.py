@@ -167,7 +167,8 @@ class DMIOpenDataClient():
             print("Found", par, "in station", station_id, dist, "km away")
             new_row = pd.DataFrame(
                 {'par': par, 'id': station_id, 'dist': dist, 'lat': station_lat, 'lon': station_lon}, index=[0])
-            m = pd.concat([new_row, m.loc[:]]).reset_index(drop=True)
+            m = m.dropna(axis=1, how='all')
+            m = pd.concat([new_row, m], ignore_index=True)
             s = self.get_series(par=par, station_id=station_id, timeres=timeres)
 
             if len(s) > 0:
