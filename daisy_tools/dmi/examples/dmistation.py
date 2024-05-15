@@ -20,24 +20,11 @@ META_FILE = "dmimeta.csv"
 # Your API key
 DMI_API_KEY = ""
 
-print ("Starting script")
-
-from datetime import datetime
 import numpy as np
-import pandas as pd
-from math import cos, asin, sqrt, pi
 
 from daisy_tools.dmi import DMIOpenDataClient
-from util import construct_datetime_argument, distance
+from daisy_tools.dmi import construct_datetime_argument, distance
 
-# open-dmi-data: client.py
-
-import requests
-from tenacity import retry, stop_after_attempt, wait_random
-
-# Get time series
-
-print ("Opening DMI client")
 client = DMIOpenDataClient(api_key=DMI_API_KEY, api_name="climateData")
 
 # Following creates a .csv file containing meassured values for each of the parameters 
