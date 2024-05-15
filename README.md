@@ -3,6 +3,9 @@
 - Data conversion
    * [hip](daisy_tools/hip) - Tools for working with data from [Hydrologisk Informations- og Prognosesystem](https://hip.dataforsyningen.dk/pages/about.html).
 
+- Data retrieval 
+   * [dmi](daisy_tools/dmi) - Scripts for retrieving weather data from [DMI](https://www.dmi.dk/frie-data).
+
 ## Installation
 <details>
 <summary>
