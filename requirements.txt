@@ -5,3 +5,7 @@ scipy
 pandas
 cfunits
 cftime
+datetime
+tenacity
+requests
+pyproj
