@@ -1,14 +1,8 @@
 [project]
 name = "daisy_tools"
 version = "0.1.1"
-dependencies = [
-             "xarray",
-             "netcdf4",
-             "numpy",
-             "scipy",
+dependencies = ["numpy",
              "pandas",
-             "cfunits",
-             "cftime",
              "datetime",
              "tenacity",
              "requests",

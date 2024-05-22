@@ -11,12 +11,6 @@ PARS = ["acc_precip", "mean_temp", "mean_relative_hum", "mean_wind_speed",
 # Time resolution 
 TIMERES = "hour"
 
-#Where we want data to go
-OUTPUT_FILE = "dmidata.csv"
-
-#Store information about data here
-META_FILE = "dmimeta.csv"
-
 # Your API key
 DMI_API_KEY = ""
 
