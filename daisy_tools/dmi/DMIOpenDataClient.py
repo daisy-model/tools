@@ -138,9 +138,9 @@ class DMIOpenDataClient():
     def get_index(self, data):
         return (np.datetime64(i['properties']['to']) for i in data)
 
-    def get_series(self, *, par, station_id, timeres):
+    def get_series(self, *, par, station_id, timeres, startdate=None, enddate=None):
         print("Looking up parameter ", par)
-        data = self.get_climate_data(par, station_id=station_id, time_resolution=timeres, limit=200000)
+        data = self.get_climate_data(par, station_id=station_id, time_resolution=timeres, limit=200000, from_time=startdate, to_time=enddate)
         if len(data) > 0:
             print("Has ", len(data), "datapoints")
         else:
