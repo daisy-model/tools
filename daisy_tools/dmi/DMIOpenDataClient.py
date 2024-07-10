@@ -147,7 +147,7 @@ class DMIOpenDataClient():
             print("No data, ignoring")
         return pd.Series(self.get_value(data), index=self.get_index(data))
 
-    def get_data(self, *, latitude, longitude, timeres, pars):
+    def get_data(self, *, latitude, longitude, timeres, pars, startdate=None, enddate=None):
         p = pd.DataFrame()
         m = pd.DataFrame(columns=["par", "id", "dist", "lat", "lon"])
 
@@ -169,7 +169,7 @@ class DMIOpenDataClient():
                 {'par': par, 'id': station_id, 'dist': dist, 'lat': station_lat, 'lon': station_lon}, index=[0])
             m = m.dropna(axis=1, how='all')
             m = pd.concat([new_row, m], ignore_index=True)
-            s = self.get_series(par=par, station_id=station_id, timeres=timeres)
+            s = self.get_series(par=par, station_id=station_id, timeres=timeres, startdate=startdate, enddate=enddate)
 
             if len(s) > 0:
                 p[par] = s
