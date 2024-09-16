@@ -143,7 +143,7 @@ class DMIOpenDataClient():
                 "limit": 1,
             },
         )
-        return res
+        return res.get("features", [])
 
 
     def get_value(self, data):
