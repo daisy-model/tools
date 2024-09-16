@@ -131,6 +131,20 @@ class DMIOpenDataClient():
                 closest_dist, closest_station = dist, station
 
         return closest_station
+    
+    def get_station_info(
+        self, station_id
+    ):
+        res = self._query(
+            api="climateData",
+            service="collections/station/items",
+            params={
+                "stationId": station_id,
+                "limit": 1,
+            },
+        )
+        return res
+
 
     def get_value(self, data):
         return (i['properties']['value'] for i in data)
