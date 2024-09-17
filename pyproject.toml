@@ -15,6 +15,7 @@ extract_soil_column = "daisy_tools.hip.runners:run_extract_soil_column"
 extract_head_elevation = "daisy_tools.hip.runners:run_extract_head_elevation"
 prepare_hip_data_for_daisy = "daisy_tools.hip.runners:run_prepare_hip_data_for_daisy"
 prepare_hip_data_for_daisy_gui = "daisy_tools.hip.gui:main"
+extract_top_aquifer_potential = "daisy_tools.hip.runners:run_extract_top_aquifer_potential"
 
 [build-system]
 requires = [
