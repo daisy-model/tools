@@ -7,15 +7,16 @@ __all__ = [
 ]
 
 def construct_datetime_argument(
-    from_time = None, to_time = None
-) -> str:
-    if from_time is None and to_time is None:
-        return None
-    if from_time is not None and to_time is None:
+    from_time: datetime = None,
+    to_time: datetime = None
+) -> str | None:
+    if from_time and to_time:
+        return f"{from_time.isoformat()}Z/{to_time.isoformat()}Z"
+    if from_time:
         return f"{from_time.isoformat()}Z"
-    if from_time is None and to_time is not None:
+    if to_time:
         return f"{to_time.isoformat()}Z"
-    return f"{from_time.isoformat()}Z/{to_time.isoformat()}Z"
+    return None
 
 # Constants
 CONST_EARTH_RADIUS = 6371       # km
