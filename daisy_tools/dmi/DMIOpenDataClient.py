@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from pyproj import Proj
 from math import trunc
-from .util import construct_datetime_argument, distance
+from util import construct_datetime_argument, distance
+#from .util import construct_datetime_argument, distance
 
 __all__ = [
     'DMIOpenDataClient',
@@ -36,21 +37,20 @@ class DMIOpenDataClient():
 
     @retry(stop=stop_after_attempt(10), wait=wait_random(min=0.1, max=1.00))
     def _query(self, api: str, service: str, params, **kwargs):
-        res = requests.get(
-            url=f"{self.base_url(api=api)}/{service}",
-            params={"api-key": self.api_key, **params},
-            **kwargs,
-        )
-        data = res.json()
-        http_status_code = data.get("http_status_code", 200)
-        if http_status_code != 200:
-            message = data.get("message")
-            raise ValueError(
-                f"Failed HTTP request with HTTP status code {http_status_code} and message: {message}"
+        res = []
+        try: 
+            res = requests.get(
+                url=f"{self.base_url(api=api)}/{service}",
+                params={"api-key": self.api_key, **params},
+                **kwargs,
             )
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            print(f'HTTPError {res.status_code}, message: {eval(err.response.text)['message']}')
         return res.json()
 
     def get_stations(self, limit=10000, offset=0):
+        
         res = self._query(
             api=self.api_name,
             service="collections/station/items",
@@ -102,6 +102,7 @@ class DMIOpenDataClient():
                 "offset": offset,
             },
         )
+        
         return res.get("features", [])
 
     def get_closest_station(
@@ -156,7 +157,7 @@ class DMIOpenDataClient():
         print("Looking up parameter ", par)
         data = self.get_climate_data(par, station_id=station_id, time_resolution=timeres, limit=200000, from_time=startdate, to_time=enddate)
         if len(data) > 0:
-            print("Has ", len(data), "datapoints")
+            print(f"Found {len(data)} datapoints")
         else:
             print("No data, ignoring")
         return pd.Series(self.get_value(data), index=self.get_index(data))
@@ -166,11 +167,11 @@ class DMIOpenDataClient():
         m = pd.DataFrame(columns=["par", "id", "dist", "lat", "lon"])
 
         for par in pars:
-            print("Looking for station with", par)
+            print(f"Looking for station with parameter {par}")
             station = self.get_closest_station(latitude=latitude, longitude=longitude, pars=[par])
 
             if not station:
-                print("None found")
+                print(f"No station found with parameter {par}")
                 continue
 
             coordinates = station.get("geometry", {}).get("coordinates")
