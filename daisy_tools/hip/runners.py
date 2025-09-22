@@ -96,7 +96,7 @@ def run_prepare_hip_data_for_daisy():
         dk_model = f'DK{args.dk_model}'
         with xr.open_dataset(args.hs_model) as hs_model, \
              xr.open_dataset(args.gw_potential) as gw_potential:
-            soil_column, head_elevation = \
+            soil_column, head_elevation, top2m_head_elevation = \
                 prepare_hip_data_for_daisy(dk_model, hs_model, gw_potential, args.x, args.y, unit)
 
         if args.truncate:
@@ -114,6 +114,8 @@ def run_prepare_hip_data_for_daisy():
             soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
             head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
             DDFPressure(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
+            top2m_head_elevation.to_csv(os.path.join(args.outdir, 'top2m_pressure.csv'), index=False)
+            DDFPressure(top2m_head_elevation).save(os.path.join(args.outdir, 'top2m_pressure_table.ddf'))
             top_aquitard = soil_column.loc[soil_column['top_aquitard']]
             top_aquitard[
                 ['dk_layer', 'elevation', 'thickness', 'unit', 'conductive_properties']
