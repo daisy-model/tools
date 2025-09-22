@@ -11,12 +11,19 @@ def construct_datetime_argument(
     to_time: datetime = None
 ) -> str | None:
     if from_time and to_time:
-        return f"{from_time.isoformat()}Z/{to_time.isoformat()}Z"
+        return f"{format_datetime(from_time)}/{format_datetime(to_time)}"
     if from_time:
-        return f"{from_time.isoformat()}Z"
+        return format_datetime(from_time)
     if to_time:
-        return f"{to_time.isoformat()}Z"
+        return format_datetime(to_time)
     return None
+
+def format_datetime(dt):
+    # We can use either ...+HH:mm or ...Z
+    if dt.utcoffset() is None:
+        return dt.isoformat() + "Z"
+    else:
+        return dt.isoformat()
 
 # Constants
 CONST_EARTH_RADIUS = 6371       # km

@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 from pyproj import Proj
 from math import trunc
-from util import construct_datetime_argument, distance
-#from .util import construct_datetime_argument, distance
+from daisy_tools.dmi.util import construct_datetime_argument, distance
 
 __all__ = [
     'DMIOpenDataClient',
@@ -38,7 +37,7 @@ class DMIOpenDataClient():
     @retry(stop=stop_after_attempt(10), wait=wait_random(min=0.1, max=1.00))
     def _query(self, api: str, service: str, params, **kwargs):
         res = []
-        try: 
+        try:
             res = requests.get(
                 url=f"{self.base_url(api=api)}/{service}",
                 params={"api-key": self.api_key, **params},
@@ -46,11 +45,11 @@ class DMIOpenDataClient():
             )
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            print(f'HTTPError {res.status_code}, message: {eval(err.response.text)['message']}')
+            print(f'HTTPError {res.status_code}, message: {eval(err.response.text)["message"]}')
         return res.json()
 
     def get_stations(self, limit=10000, offset=0):
-        
+
         res = self._query(
             api=self.api_name,
             service="collections/station/items",
@@ -102,7 +101,7 @@ class DMIOpenDataClient():
                 "offset": offset,
             },
         )
-        
+
         return res.get("features", [])
 
     def get_closest_station(
@@ -132,7 +131,7 @@ class DMIOpenDataClient():
                 closest_dist, closest_station = dist, station
 
         return closest_station
-    
+
     def get_station_info(
         self, station_id
     ):
@@ -155,6 +154,8 @@ class DMIOpenDataClient():
 
     def get_series(self, *, par, station_id, timeres, startdate=None, enddate=None):
         print("Looking up parameter ", par)
+        if self.api_name != "climateData":
+            raise ValueError(f"get_series not implemented for API: {self.api_name}")
         data = self.get_climate_data(par, station_id=station_id, time_resolution=timeres, limit=200000, from_time=startdate, to_time=enddate)
         if len(data) > 0:
             print(f"Found {len(data)} datapoints")
@@ -163,6 +164,8 @@ class DMIOpenDataClient():
         return pd.Series(self.get_value(data), index=self.get_index(data))
 
     def get_data(self, *, latitude, longitude, timeres, pars, startdate=None, enddate=None):
+        if self.api_name != "climateData":
+            raise ValueError(f"get_data not implemented for API: {self.api_name}")
         p = pd.DataFrame()
         m = pd.DataFrame(columns=["par", "id", "dist", "lat", "lon"])
 
@@ -190,7 +193,7 @@ class DMIOpenDataClient():
                 p[par] = s
 
         return p, m
-    
+
     def grid_name(self, latitude, longitude, size="10km"):
         # DMI uses "Det Dansk Kvadratnet" which uses ETRS89 / EPSG25832.
         ETRS89 = Proj('epsg:25832')
@@ -206,24 +209,3 @@ class DMIOpenDataClient():
         e = str(trunc(east / r) * m)
         cell_id = f"{size}_{n}_{e}"
         return cell_id
-
-    def get_grid_cell_data_df (client, cell_id, param_name, spatial_res="10km", temporal_res="hour", limit=300000 ):
-        #TODO handle 20km grid and optional time span
-        json = client._query(api='climateData',
-                          service=f'/collections/{spatial_res}GridValue/items',
-                          params={'cellId': cell_id,
-                                  'limit': limit,
-                                  'timeResolution': temporal_res,
-                                  'parameterId': param_name })
-                
-        df = pd.json_normalize(json['features'])
-
-        entry = df[df['properties.parameterId']==param_name][['properties.to','properties.value']]
-        entry['Time']=pd.to_datetime(entry['properties.to'])
-        entry.index=entry['Time'].values
-        print (param_name, ":",
-            len (entry), "entries")
-        if (len (entry.index.unique()) != len (entry)):
-            entry = entry.drop_duplicates (subset='Time', keep="last")
-            print (len (entry), "unique")
-        return entry['properties.value']
