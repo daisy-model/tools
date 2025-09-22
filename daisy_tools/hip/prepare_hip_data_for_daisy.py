@@ -3,7 +3,7 @@ from .util import find_topmost_aquifer, find_topmost_aquitard
 from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .conductive_properties import get_conductive_properties
-from .layer_names import hip_elevation_to_dkm2019, hip_pressure_to_dkm2019
+from .layer_names import hip_elevation_to_dkm2019, hip_pressure_to_dkm2019, hip_elevation_to_hip_pressure
 
 __all__ = [
     'prepare_hip_data_for_daisy'
@@ -68,4 +68,12 @@ def prepare_hip_data_for_daisy(dk_model, hs_model, gw_potential, x, y, unit):
                                             base_unit=unit)
     head_elevation['dk_layer'] = head_elevation['layer'].replace(hip_pressure_to_dkm2019(dk_model))
     head_elevation['head_elevation'] = head_elevation['head_elevation'] - terrain_height
-    return soil_column, head_elevation
+
+    # We also want head elevation in top2m layer.
+    # The hip elevation name of top2m is always CompLayer_1
+    top2m_head_elevation = extract_head_elevation(gw_potential, x=x, y=y,
+                                                  layers=hip_elevation_to_hip_pressure(dk_model)['CompLayer_1'],
+                                                  base_unit=unit)
+    top2m_head_elevation['dk_layer'] = top2m_head_elevation['layer'].replace(hip_pressure_to_dkm2019(dk_model))
+    top2m_head_elevation['head_elevation'] = top2m_head_elevation['head_elevation'] - terrain_height
+    return soil_column, head_elevation, top2m_head_elevation

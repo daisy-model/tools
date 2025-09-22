@@ -7,6 +7,7 @@ from .extract_head_elevation import extract_head_elevation
 from .extract_soil_column import extract_soil_column
 from .fix_hip_for_qgis import fix_hip_for_qgis
 from .prepare_hip_data_for_daisy import prepare_hip_data_for_daisy
+from .extract_top_aquifer_potential import extract_top_aquifer_potential
 from .ddf import DDFPressure
 
 def run_fix_hip_for_qgis():
@@ -95,7 +96,7 @@ def run_prepare_hip_data_for_daisy():
         dk_model = f'DK{args.dk_model}'
         with xr.open_dataset(args.hs_model) as hs_model, \
              xr.open_dataset(args.gw_potential) as gw_potential:
-            soil_column, head_elevation = \
+            soil_column, head_elevation, top2m_head_elevation = \
                 prepare_hip_data_for_daisy(dk_model, hs_model, gw_potential, args.x, args.y, unit)
 
         if args.truncate:
@@ -113,11 +114,45 @@ def run_prepare_hip_data_for_daisy():
             soil_column.to_csv(os.path.join(args.outdir, 'soil_column.csv'), index=False)
             head_elevation.to_csv(os.path.join(args.outdir, 'pressure.csv'), index=False)
             DDFPressure(head_elevation).save(os.path.join(args.outdir, 'pressure_table.ddf'))
+            top2m_head_elevation.to_csv(os.path.join(args.outdir, 'top2m_pressure.csv'), index=False)
+            DDFPressure(top2m_head_elevation).save(os.path.join(args.outdir, 'top2m_pressure_table.ddf'))
             top_aquitard = soil_column.loc[soil_column['top_aquitard']]
             top_aquitard[
                 ['dk_layer', 'elevation', 'thickness', 'unit', 'conductive_properties']
             ].to_csv(os.path.join(args.outdir, 'top_aquitard.csv'), index=False)
     except Exception as e: # pylint: disable=broad-exception-caught
+        print(e)
+        return 1
+    return 0
+
+
+def run_extract_top_aquifer_potential():
+    # pylint: disable=missing-function-docstring
+    parser = argparse.ArgumentParser('Prepare HIP data for postgis')
+    parser.add_argument('hs_model', type=str, help='Path to hydrostratigraphic model file')
+    parser.add_argument('gw_potential', type=str, help='Path to ground water potential file')
+    parser.add_argument('outpath', type=str)
+    parser.add_argument('--dk-model', type=int, choices=(1,2,3,4,5,6,7), default=None,
+                        help='Which DK model the data is from. If None, try to guess from '
+                        'hs_model filename')
+    parser.add_argument('--unit', type=str, default='cm',
+                        help='Unit of measurements. Default is cm.')    
+    parser.add_argument('--truncate', action='store_true',
+                        help='If set, truncate measurements to 0 decimals')
+    args = parser.parse_args()
+
+    try:
+        unit = cfunits.Units(args.unit)
+        if args.dk_model is None:
+            args.dk_model = int(os.path.basename(args.hs_model)[2])
+            assert 1 <= args.dk_model <= 7
+        dk_model = f'DK{args.dk_model}'
+        with xr.open_dataset(args.hs_model) as hs_model, \
+             xr.open_dataset(args.gw_potential) as gw_potential:
+            ta_potential = extract_top_aquifer_potential(hs_model, gw_potential, dk_model,
+                                                         base_unit=unit)
+        ta_potential.to_netcdf(args.outpath)
+    except IOError as e: #Exception as e: # pylint: disable=broad-exception-caught
         print(e)
         return 1
     return 0
